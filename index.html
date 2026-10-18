@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Read2Give V2 - Modern Impact & Community Prototype</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#2563EB',
+                            indigo: '#4F46E5',
+                            emerald: '#10B981',
+                            amber: '#F59E0B',
+                            rose: '#F43F5E',
+                            cyan: '#06B6D4',
+                            dark: '#0F172A',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            color: #f8fafc;
+            min-h: 100vh;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .glass-card-light {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .phone-frame {
+            max-width: 420px;
+            height: 850px;
+            border-radius: 44px;
+            border: 12px solid #1e293b;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 30px rgba(37, 99, 235, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .desktop-frame {
+            max-width: 100%;
+            height: 100vh;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.8); }
+        }
+
+        .glow-emerald { animation: pulseGlow 2s infinite; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-0 sm:p-3 overflow-x-hidden">
+
+    <!-- TOP GLOBAL COMPARISON & CONTROL BAR -->
+    <header class="w-full max-w-6xl z-50 my-2 px-3">
+        <div class="glass-card rounded-2xl p-2.5 sm:p-3 flex flex-wrap items-center justify-between gap-2 shadow-2xl">
+            
+            <!-- Left: Version Branding -->
+            <div class="flex items-center gap-2">
+                <span class="bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow">
+                    PROTOTYPE V2
+                </span>
+                <span class="text-xs font-bold text-slate-200 hidden sm:inline">Read2Give (Modern Glass UI)</span>
+            </div>
+
+            <!-- Middle: Persona Selector -->
+            <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-700/60 text-xs">
+                <button onclick="setPersona('student')" id="pBtn-student" class="px-2.5 py-1 rounded-lg font-bold transition text-emerald-400 bg-emerald-500/20 border border-emerald-500/40">
+                    🎓 Student
+                </button>
+                <button onclick="setPersona('adult')" id="pBtn-adult" class="px-2.5 py-1 rounded-lg font-bold transition text-slate-400 hover:text-white">
+                    👤 Adult
+                </button>
+                <button onclick="setPersona('author')" id="pBtn-author" class="px-2.5 py-1 rounded-lg font-bold transition text-slate-400 hover:text-white">
+                    ✍️ Author
+                </button>
+            </div>
+
+            <!-- Right: Action Buttons -->
+            <div class="flex items-center gap-2">
+                <button onclick="openDeployGuide()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
+                    <i class="fa-solid fa-code text-xs"></i>
+                    <span class="hidden md:inline">How to Deploy / Code</span>
+                </button>
+                <button onclick="openFeedbackModal()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition">
+                    <i class="fa-solid fa-check-to-slot"></i>
+                    <span>Vote & Feedback</span>
+                </button>
+                <button onclick="toggleFrameMode()" id="frameToggleBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl text-xs transition" title="Toggle Frame">
+                    <i class="fa-solid fa-mobile-screen"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN APP CONTAINER FRAME -->
+    <main id="appFrame" class="phone-frame w-full bg-slate-950 text-slate-100 flex flex-col relative overflow-hidden my-auto transition-all duration-300">
+
+        <!-- Simulated Mobile Top Notch / Status -->
+        <div id="notchBar" class="bg-slate-950 px-6 pt-3 pb-2 flex justify-between items-center text-xs font-semibold text-slate-400 border-b border-slate-900 select-none">
+            <span class="text-xs font-bold text-slate-200">9:41</span>
+            <div class="w-16 h-3 bg-slate-800 rounded-full mx-auto hidden sm:block"></div>
+            <div class="flex items-center gap-2 text-[10px]">
+                <i class="fa-solid fa-wifi"></i>
+                <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            </div>
+        </div>
+
+        <!-- Dynamic Screen Host -->
+        <div id="screenViewport" class="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
+
+            <!-- ================= SCREEN 1: SPLASH ================= -->
+            <section id="s-splash" class="flex-1 flex flex-col justify-between p-6 text-center bg-gradient-to-b from-blue-900/40 via-slate-950 to-slate-950 relative overflow-hidden">
+                <div class="absolute -top-20 -left-20 w-56 h-56 bg-blue-600/30 rounded-full blur-3xl"></div>
+                <div class="absolute top-1/2 -right-20 w-56 h-56 bg-emerald-500/20 rounded-full blur-3xl"></div>
+
+                <div class="pt-4 flex justify-between items-center z-10">
+                    <span class="text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 px-3 py-1 rounded-full" id="splashPersonaLabel">
+                        🎓 Student Mode Active
+                    </span>
+                    <span class="text-[10px] text-slate-400">V2.0 Glass Edition</span>
+                </div>
+
+                <div class="my-auto flex flex-col items-center z-10">
+                    <div class="w-24 h-24 bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 rounded-3xl flex items-center justify-center text-white text-4xl shadow-2xl shadow-blue-500/40 mb-6 transform hover:rotate-6 transition">
+                        <i class="fa-solid fa-book-sparkles"></i>
+                    </div>
+
+                    <h1 class="font-display font-black text-4xl tracking-tight text-white">
+                        Read<span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">2Give</span>
+                    </h1>
+                    <p class="text-xs font-bold tracking-widest uppercase text-slate-400 mt-2">Every Page Empowering Children</p>
+
+                    <div class="glass-card mt-6 p-4 rounded-2xl max-w-xs text-xs text-slate-300 leading-relaxed border border-white/10">
+                        <p class="font-medium">
+                            Turn your daily reading into books, laptops, and school supplies for children in need.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 mt-6 w-full max-w-xs text-center">
+                        <div class="p-2.5 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                            <i class="fa-solid fa-book-open text-blue-400 text-base"></i>
+                            <p class="text-[10px] font-bold text-slate-300 mt-1">Read eBooks</p>
+                        </div>
+                        <div class="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                            <i class="fa-solid fa-star text-amber-400 text-base"></i>
+                            <p class="text-[10px] font-bold text-slate-300 mt-1">Earn Points</p>
+                        </div>
+                        <div class="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                            <i class="fa-solid fa-heart-pulse text-emerald-400 text-base"></i>
+                            <p class="text-[10px] font-bold text-slate-300 mt-1">Fund Impact</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3 z-10 pb-4">
+                    <button onclick="navTo('home')" class="w-full bg-gradient-to-r from-blue-600 to-emerald-500 hover:from-blue-500 hover:to-emerald-400 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-xl shadow-blue-500/25 transition flex items-center justify-center gap-2">
+                        Start Reading & Giving <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ================= SCREEN 2: EXPLORE / HOME ================= -->
+            <section id="s-home" class="hidden flex-1 flex-col p-4 bg-slate-950 space-y-4">
+                <!-- User Header -->
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Welcome back</p>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-1.5" id="homeGreetingName">
+                            Alex Morgan <span class="text-xs">✨</span>
+                        </h2>
+                    </div>
+                    <div onclick="navTo('earn')" class="cursor-pointer bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black px-3.5 py-1.5 rounded-2xl flex items-center gap-1.5 text-xs shadow-lg shadow-amber-500/20 hover:scale-105 transition">
+                        <i class="fa-solid fa-star text-slate-950"></i>
+                        <span id="ptsHome">180</span> <span class="text-[9px] uppercase">pts</span>
+                    </div>
+                </div>
+
+                <!-- Streak Banner -->
+                <div class="glass-card bg-gradient-to-r from-indigo-900/50 to-blue-900/50 p-3.5 rounded-2xl border border-indigo-500/30 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center text-xl border border-amber-500/30">
+                            🔥
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-white">5 Day Reading Streak!</p>
+                            <p class="text-[10px] text-slate-400">+10 Bonus points earned today</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">Active</span>
+                </div>
+
+                <!-- Genre Pill Filters -->
+                <div class="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                    <button class="bg-blue-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl whitespace-nowrap shadow">All Genres</button>
+                    <button class="glass-card text-slate-300 text-xs font-semibold px-3.5 py-1.5 rounded-xl whitespace-nowrap">Classics</button>
+                    <button class="glass-card text-slate-300 text-xs font-semibold px-3.5 py-1.5 rounded-xl whitespace-nowrap">Children</button>
+                    <button class="glass-card text-slate-300 text-xs font-semibold px-3.5 py-1.5 rounded-xl whitespace-nowrap">Science</button>
+                    <button class="glass-card text-slate-300 text-xs font-semibold px-3.5 py-1.5 rounded-xl whitespace-nowrap">Fiction</button>
+                </div>
+
+                <!-- Featured Highlight Book Card -->
+                <div class="glass-card bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 rounded-3xl p-4 border border-blue-500/30 relative overflow-hidden shadow-xl">
+                    <div class="relative z-10 flex gap-4 items-center">
+                        <div class="w-20 h-28 bg-gradient-to-tr from-amber-500 to-orange-600 rounded-xl shadow-lg flex-shrink-0 flex flex-col justify-between p-2 text-white">
+                            <span class="text-[9px] font-black bg-black/40 px-1 py-0.5 rounded w-fit">BESTSELLER</span>
+                            <i class="fa-solid fa-crown text-2xl mx-auto my-auto text-amber-200"></i>
+                            <p class="text-[9px] font-bold text-center leading-tight">The Little Prince</p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-md">Free eBook Access</span>
+                            <h3 class="font-bold text-sm text-white">The Little Prince</h3>
+                            <p class="text-[11px] text-slate-400">By Antoine de Saint-Exupéry</p>
+                            <p class="text-[10px] text-slate-300 line-clamp-2">"It is only with the heart that one can see rightly..."</p>
+                            <button onclick="launchReader('The Little Prince')" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow mt-1">
+                                Start Reading (+10 pts)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Catalog Grid -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-xs text-slate-300 uppercase tracking-wider">Explore Books</h4>
+                        <span class="text-[11px] text-blue-400 font-semibold cursor-pointer">View All</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3" id="exploreBookGrid">
+                        <!-- Book 1 -->
+                        <div onclick="launchReader('Charlotte\'s Web')" class="glass-card p-2.5 rounded-2xl border border-white/10 hover:border-blue-500/50 transition cursor-pointer group">
+                            <div class="aspect-[3/4] bg-gradient-to-br from-emerald-600 to-teal-800 rounded-xl mb-2 flex flex-col items-center justify-center p-2 text-center text-white relative">
+                                <i class="fa-solid fa-spider text-3xl mb-1 text-emerald-200"></i>
+                                <p class="text-xs font-bold">Charlotte's Web</p>
+                                <span class="absolute top-1 right-1 bg-amber-400 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded">+10 pts</span>
+                            </div>
+                            <h5 class="font-bold text-xs text-white truncate">Charlotte's Web</h5>
+                            <p class="text-[10px] text-slate-400">E.B. White</p>
+                        </div>
+
+                        <!-- Book 2 -->
+                        <div onclick="launchReader('Wonder')" class="glass-card p-2.5 rounded-2xl border border-white/10 hover:border-blue-500/50 transition cursor-pointer group">
+                            <div class="aspect-[3/4] bg-gradient-to-br from-blue-600 to-cyan-700 rounded-xl mb-2 flex flex-col items-center justify-center p-2 text-center text-white relative">
+                                <i class="fa-solid fa-sun text-3xl mb-1 text-yellow-300"></i>
+                                <p class="text-xs font-bold">Wonder</p>
+                                <span class="absolute top-1 right-1 bg-amber-400 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded">+10 pts</span>
+                            </div>
+                            <h5 class="font-bold text-xs text-white truncate">Wonder</h5>
+                            <p class="text-[10px] text-slate-400">R.J. Palacio</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Author Publisher Shortcut Banner -->
+                <div id="authorHomeBox" class="hidden glass-card bg-gradient-to-r from-purple-900/40 to-slate-900 p-3.5 rounded-2xl border border-purple-500/30 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs font-bold text-purple-300">Author & Publisher Hub</p>
+                        <p class="text-[10px] text-slate-400">Publish your eBook to support kids</p>
+                    </div>
+                    <button onclick="openAuthorPublishModal()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow">
+                        + Publish
+                    </button>
+                </div>
+            </section>
+
+            <!-- ================= SCREEN 3: INTERACTIVE READER ================= -->
+            <section id="s-reader" class="hidden flex-1 flex-col bg-slate-950 text-slate-100 transition-colors duration-300">
+                <!-- Top Toolbar -->
+                <div class="p-3.5 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 flex justify-between items-center sticky top-0 z-20">
+                    <button onclick="navTo('home')" class="text-slate-400 hover:text-white text-xs font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-chevron-left text-[10px]"></i> Back
+                    </button>
+                    <div class="text-center">
+                        <h4 class="font-bold text-xs text-white" id="readerTitle">The Little Prince</h4>
+                        <p class="text-[9px] text-slate-400" id="readerSub">Chapter 2 of 18</p>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="toggleReaderDarkMode()" class="p-1.5 bg-slate-800 text-slate-300 rounded-lg text-xs hover:text-white">
+                            <i class="fa-solid fa-moon"></i>
+                        </button>
+                        <button onclick="cycleFontSize()" class="p-1.5 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold hover:text-white">
+                            A+
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Book Body Content -->
+                <div class="flex-1 p-5 overflow-y-auto leading-relaxed text-slate-300 space-y-4 font-serif text-sm max-w-lg mx-auto" id="readerBodyText">
+                    <div class="text-center my-3 bg-blue-950/40 p-4 rounded-2xl border border-blue-500/20">
+                        <p class="font-sans text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1">Interactive eBook Sample</p>
+                        <p class="italic text-slate-200">"All grown-ups were once children... but only few of them remember it."</p>
+                    </div>
+
+                    <p>So I lived my life alone, without anyone that I could really talk to, until I had an accident with my plane in the Desert of Sahara, six years ago. Something was broken in my engine.</p>
+
+                    <p>The first night then I went to sleep on the sand, a thousand miles from any inhabited territory. You may imagine my amazement, at sunrise, when I was awakened by an odd little voice. It said: <em>"If you please—draw me a sheep!"</em></p>
+
+                    <p>I jumped to my feet, completely thunderstruck. I blinked my eyes hard. I looked carefully all around me. And I saw a most extraordinary small person, who stood there examining me with great seriousness...</p>
+
+                    <!-- Adult Lock Paywall Overlay Banner (When in Adult Mode) -->
+                    <div id="adultReaderPaywall" class="hidden glass-card bg-gradient-to-br from-amber-950/80 to-slate-900 border border-amber-500/40 rounded-2xl p-4 text-center my-4">
+                        <i class="fa-solid fa-lock text-amber-400 text-2xl mb-2"></i>
+                        <h4 class="font-bold text-sm text-white">Adult Reader Chapter Preview</h4>
+                        <p class="text-xs text-slate-300 mt-1 mb-3">You've reached the free preview limit (2 Chapters). Unlock the complete book by making a tax-deductible donation!</p>
+                        <button onclick="unlockAdultBookModal()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs py-2.5 rounded-xl shadow-lg">
+                            Donate $2.99 or 150 pts to Unlock Full eBook
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Audio Floating Player -->
+                <div class="bg-slate-900 border-t border-slate-800 px-4 py-2 flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-play text-emerald-400 text-base"></i>
+                        <span class="text-xs font-bold text-slate-300" id="audioTextLabel">AI Audio Narrator</span>
+                    </div>
+                    <button onclick="toggleAudioNarrator()" id="audioPlayToggle" class="bg-emerald-500 text-slate-950 font-black text-xs px-3 py-1 rounded-lg">
+                        Play Audio
+                    </button>
+                </div>
+
+                <!-- Bottom Progress Bar Controls -->
+                <div class="p-3.5 bg-slate-900 border-t border-slate-800 space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <button onclick="prevChapter()" class="text-slate-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left"></i> Prev</button>
+                        <span class="text-slate-400 font-semibold" id="readerProgressText">Chapter 2 of 18</span>
+                        <button onclick="finishChapterReward()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-3 py-1 rounded-xl shadow text-xs">
+                            Finish Chapter (+10 pts)
+                        </button>
+                    </div>
+                    <input type="range" min="1" max="18" value="2" id="readerSlider" oninput="updateReaderSlider(this.value)" class="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                </div>
+            </section>
+
+            <!-- ================= SCREEN 4: GAMIFIED EARN POINTS ================= -->
+            <section id="s-earn" class="hidden flex-1 flex-col p-4 bg-slate-950 space-y-4">
+                <div class="text-center">
+                    <h2 class="text-lg font-bold text-white">Gamified Earn Center 🎮</h2>
+                    <p class="text-xs text-slate-400">Complete daily quests and quizzes to earn donation points!</p>
+                </div>
+
+                <!-- Balance Display -->
+                <div class="glass-card bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 p-4 rounded-3xl text-slate-950 flex justify-between items-center shadow-xl">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-wider opacity-80">Total Points Available</p>
+                        <h3 class="font-display font-black text-3xl mt-0.5" id="ptsEarnScreen">180 <span class="text-sm">pts</span></h3>
+                    </div>
+                    <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl backdrop-blur-sm">
+                        ⭐
+                    </div>
+                </div>
+
+                <!-- Daily Spin & Quest List -->
+                <div class="space-y-3">
+                    <h4 class="font-bold text-xs text-slate-400 uppercase tracking-wider">Daily Quests</h4>
+
+                    <!-- Quiz Quest Card -->
+                    <div class="glass-card p-3.5 rounded-2xl border border-white/10 flex justify-between items-center">
+                        <div class="flex gap-3 items-center">
+                            <div class="w-10 h-10 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center text-lg border border-indigo-500/30">
+                                🧠
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-xs text-white">Daily Book Quiz Quest</h5>
+                                <p class="text-[10px] text-slate-400">Answer 1 question about Little Prince</p>
+                            </div>
+                        </div>
+                        <button onclick="runQuizModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl">
+                            Start Quiz (+15)
+                        </button>
+                    </div>
+
+                    <!-- Read Chapter -->
+                    <div class="glass-card p-3.5 rounded-2xl border border-white/10 flex justify-between items-center">
+                        <div class="flex gap-3 items-center">
+                            <div class="w-10 h-10 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center text-lg border border-blue-500/30">
+                                📖
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-xs text-white">Read 1 Chapter Today</h5>
+                                <p class="text-[10px] text-slate-400">+10 pts per chapter read</p>
+                            </div>
+                        </div>
+                        <button onclick="navTo('reader')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl">
+                            Read
+                        </button>
+                    </div>
+
+                    <!-- Social Boost -->
+                    <div class="glass-card p-3.5 rounded-2xl border border-white/10 flex justify-between items-center">
+                        <div class="flex gap-3 items-center">
+                            <div class="w-10 h-10 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center text-lg border border-emerald-500/30">
+                                📣
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-xs text-white">Invite a Reading Buddy</h5>
+                                <p class="text-[10px] text-slate-400">+25 points for sharing</p>
+                            </div>
+                        </div>
+                        <button onclick="shareAppLink()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-xl">
+                            Share
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= SCREEN 5: DONATE & IMPACT SHOP ================= -->
+            <section id="s-donate" class="hidden flex-1 flex-col p-4 bg-slate-950 space-y-4">
+                <div class="text-center">
+                    <h2 class="text-lg font-bold text-white">Donate & Impact Shop 🎁</h2>
+                    <p class="text-xs text-slate-400">Transform your accumulated points into real support items.</p>
+                </div>
+
+                <!-- Points Header -->
+                <div class="glass-card p-3.5 rounded-2xl border border-white/10 flex justify-between items-center">
+                    <span class="text-xs text-slate-400 font-bold">Points Balance</span>
+                    <div class="flex items-center gap-1 font-black text-amber-400 text-sm">
+                        <i class="fa-solid fa-star"></i>
+                        <span id="ptsDonateScreen">180</span> pts
+                    </div>
+                </div>
+
+                <!-- Redeemable Items List -->
+                <div class="space-y-3">
+                    <h4 class="font-bold text-xs text-slate-400 uppercase tracking-wider">Choose Support Item</h4>
+
+                    <!-- Item 1 -->
+                    <div class="glass-card p-3.5 rounded-2xl border border-white/10 flex justify-between items-center hover:border-emerald-500/50 transition">
+                        <div class="flex gap-3 items-center">
+                            <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center text-xl border border-amber-500/30">
+                                🎒
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-xs text-white">School Supplies Kit</h5>
+                                <p class="text-[10px] text-slate-400">Notebooks, pencils, backpacks</p>
+                            </div>
+                        </div>
+                        <button onclick="redeemImpact('School Supplies Kit', 50)" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl shadow">
+                            50 pts
+                        </button>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="glass-card p-3.5 rounded-2xl border border-white/10 flex justify-between items-center hover:border-emerald-500/50 transition">
+                        <div class="flex gap-3 items-center">
+                            <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center text-xl border border-blue-500/30">
+                                💻
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-xs text-white">Learning Device Grant</h5>
+                                <p class="text-[10px] text-slate-400">E-reader or tablet for schools</p>
+                            </div>
+                        </div>
+                        <button onclick="redeemImpact('Learning Device Grant', 200)" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl shadow">
+                            200 pts
+                        </button>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="glass-card p-3.5 rounded-2xl border border-white/10 flex justify-between items-center hover:border-emerald-500/50 transition">
+                        <div class="flex gap-3 items-center">
+                            <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-xl flex items-center justify-center text-xl border border-rose-500/30">
+                                🏫
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-xs text-white">Rural School Education Fund</h5>
+                                <p class="text-[10px] text-slate-400">General grant for foundation projects</p>
+                            </div>
+                        </div>
+                        <button onclick="redeemImpact('Education Fund', 100)" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl shadow">
+                            100 pts
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Adult Cash Tax-Deductible Donation Card -->
+                <div class="glass-card bg-gradient-to-r from-blue-900/60 to-slate-900 p-4 rounded-2xl border border-blue-500/30 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-blue-300">Direct Financial Contribution</span>
+                        <span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">Tax-Deductible</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300">Adult donors receive an official tax receipt issued in partnership with verified foundations.</p>
+                    <div class="grid grid-cols-3 gap-2 pt-1">
+                        <button onclick="processDirectCashDonation(5)" class="bg-slate-800 hover:bg-blue-600 text-white font-bold text-xs py-2 rounded-xl border border-slate-700">$5</button>
+                        <button onclick="processDirectCashDonation(15)" class="bg-slate-800 hover:bg-blue-600 text-white font-bold text-xs py-2 rounded-xl border border-slate-700">$15</button>
+                        <button onclick="processDirectCashDonation(50)" class="bg-slate-800 hover:bg-blue-600 text-white font-bold text-xs py-2 rounded-xl border border-slate-700">$50</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= SCREEN 6: REAL IMPACT DASHBOARD ================= -->
+            <section id="s-impact" class="hidden flex-1 flex-col p-4 bg-slate-950 space-y-4">
+                <div class="text-center">
+                    <h2 class="text-lg font-bold text-white">Real Impact Dashboard 📊</h2>
+                    <p class="text-xs text-slate-400">Transparent live metric feed powered by Read2Give.</p>
+                </div>
+
+                <!-- Impact Metrics Grid -->
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="glass-card p-3 rounded-2xl border border-white/10">
+                        <p class="text-lg font-black text-emerald-400">12,580</p>
+                        <p class="text-[9px] text-slate-400 uppercase font-bold mt-0.5">Kids Helped</p>
+                    </div>
+                    <div class="glass-card p-3 rounded-2xl border border-white/10">
+                        <p class="text-lg font-black text-blue-400">8</p>
+                        <p class="text-[9px] text-slate-400 uppercase font-bold mt-0.5">Foundations</p>
+                    </div>
+                    <div class="glass-card p-3 rounded-2xl border border-white/10">
+                        <p class="text-lg font-black text-amber-400">1.45M</p>
+                        <p class="text-[9px] text-slate-400 uppercase font-bold mt-0.5">Pts Donated</p>
+                    </div>
+                </div>
+
+                <!-- Live Map & Story Highlight -->
+                <div class="glass-card rounded-2xl overflow-hidden border border-white/10">
+                    <div class="h-32 bg-gradient-to-r from-blue-900 to-teal-900 p-4 flex flex-col justify-end relative">
+                        <i class="fa-solid fa-earth-asia text-7xl text-white/10 absolute top-2 right-2"></i>
+                        <span class="bg-emerald-500/30 text-emerald-300 text-[9px] font-bold px-2 py-0.5 rounded-md w-fit mb-1 border border-emerald-500/30">
+                            Verified Delivery
+                        </span>
+                        <h4 class="font-bold text-xs text-white">School Supply Distribution in Northern Schools</h4>
+                    </div>
+                    <div class="p-3 text-xs text-slate-300">
+                        <p class="text-[11px] leading-relaxed">
+                            Over 450 new notebooks and learning tablets were delivered to rural schools yesterday through Room to Read Foundation partnership!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Feed -->
+                <div class="space-y-2">
+                    <h4 class="font-bold text-xs text-slate-400 uppercase tracking-wider">Live Donation Stream</h4>
+                    
+                    <div class="glass-card p-2.5 rounded-xl border border-white/5 flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span class="text-slate-200">Sarah M. donated 50 pts (School Supplies)</span>
+                        </div>
+                        <span class="text-[10px] text-slate-500">2m ago</span>
+                    </div>
+
+                    <div class="glass-card p-2.5 rounded-xl border border-white/5 flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                            <span class="text-slate-200">David K. unlocked "Wonder" eBook ($2.99)</span>
+                        </div>
+                        <span class="text-[10px] text-slate-500">12m ago</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= SCREEN 7: PROFILE & TAX CENTER ================= -->
+            <section id="s-profile" class="hidden flex-1 flex-col p-4 bg-slate-950 space-y-4">
+                <div class="flex flex-col items-center text-center pt-2">
+                    <div class="w-20 h-20 bg-gradient-to-tr from-blue-600 to-emerald-400 rounded-full flex items-center justify-center text-slate-950 text-3xl font-black shadow-xl mb-2">
+                        A
+                    </div>
+                    <h3 class="font-bold text-base text-white" id="profileDisplayName">Alex Morgan</h3>
+                    <p class="text-xs text-slate-400" id="profileRoleBadge">🎓 Student Reader Account</p>
+                </div>
+
+                <!-- Balance Card -->
+                <div class="glass-card p-4 rounded-2xl border border-white/10 flex justify-between items-center">
+                    <div>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold">Your Available Points</p>
+                        <p class="text-2xl font-black text-white" id="profilePtsDisplay">180 pts</p>
+                    </div>
+                    <button onclick="navTo('donate')" class="bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs px-4 py-2 rounded-xl shadow">
+                        Redeem
+                    </button>
+                </div>
+
+                <!-- Stats summary -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="glass-card p-3 rounded-2xl border border-white/10">
+                        <i class="fa-solid fa-book text-blue-400 text-sm mb-1"></i>
+                        <p class="text-xs font-bold text-white">18 Chapters</p>
+                        <p class="text-[10px] text-slate-400">Total Read</p>
+                    </div>
+                    <div class="glass-card p-3 rounded-2xl border border-white/10">
+                        <i class="fa-solid fa-gift text-emerald-400 text-sm mb-1"></i>
+                        <p class="text-xs font-bold text-white">4 Items</p>
+                        <p class="text-[10px] text-slate-400">Donated</p>
+                    </div>
+                </div>
+
+                <!-- Tax Deduction Calculator & Receipt Generator (For Adult Mode) -->
+                <div id="taxCenterBox" class="glass-card bg-gradient-to-br from-indigo-950 to-slate-900 p-3.5 rounded-2xl border border-indigo-500/30 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-xs text-indigo-300">Tax Deduction Center</h4>
+                        <i class="fa-solid fa-file-invoice text-indigo-400 text-xs"></i>
+                    </div>
+                    <p class="text-[11px] text-slate-300">View and download official tax receipts for eligible cash contributions.</p>
+                    <button onclick="downloadTaxReceiptPDF()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2 rounded-xl shadow">
+                        Download Tax Receipt (PDF Simulator)
+                    </button>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- BOTTOM NAVIGATION BAR -->
+        <nav id="appBottomNav" class="bg-slate-900/90 backdrop-blur-md border-t border-slate-800 px-2 py-2 flex justify-around items-center text-slate-400 select-none">
+            <button onclick="navTo('home')" id="n-home" class="flex flex-col items-center gap-0.5 text-emerald-400 font-bold transition">
+                <i class="fa-solid fa-house text-sm"></i>
+                <span class="text-[9px]">Explore</span>
+            </button>
+            <button onclick="navTo('reader')" id="n-reader" class="flex flex-col items-center gap-0.5 hover:text-white transition">
+                <i class="fa-solid fa-book-open text-sm"></i>
+                <span class="text-[9px]">Reader</span>
+            </button>
+            <button onclick="navTo('earn')" id="n-earn" class="flex flex-col items-center gap-0.5 hover:text-white transition">
+                <i class="fa-solid fa-gamepad text-sm"></i>
+                <span class="text-[9px]">Earn</span>
+            </button>
+            <button onclick="navTo('donate')" id="n-donate" class="flex flex-col items-center gap-0.5 hover:text-white transition">
+                <i class="fa-solid fa-heart text-sm"></i>
+                <span class="text-[9px]">Donate</span>
+            </button>
+            <button onclick="navTo('impact')" id="n-impact" class="flex flex-col items-center gap-0.5 hover:text-white transition">
+                <i class="fa-solid fa-chart-pie text-sm"></i>
+                <span class="text-[9px]">Impact</span>
+            </button>
+            <button onclick="navTo('profile')" id="n-profile" class="flex flex-col items-center gap-0.5 hover:text-white transition">
+                <i class="fa-solid fa-user text-sm"></i>
+                <span class="text-[9px]">Profile</span>
+            </button>
+        </nav>
+
+    </main>
+
+    <!-- ================= MODALS & OVERLAYS ================= -->
+
+    <!-- QUIZ QUEST MODAL -->
+    <div id="quizModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-amber-400">🧠 Daily Quiz Quest</span>
+                <button onclick="closeQuizModal()" class="text-slate-400 text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <h4 class="font-bold text-sm text-white">What essential lesson does The Little Prince learn from the fox?</h4>
+            <div class="space-y-2 text-xs">
+                <button onclick="answerQuiz(true)" class="w-full text-left p-3 rounded-xl bg-slate-800 hover:bg-emerald-600/30 hover:border-emerald-500 border border-slate-700 text-slate-200 transition">
+                    A. What is essential is invisible to the eye.
+                </button>
+                <button onclick="answerQuiz(false)" class="w-full text-left p-3 rounded-xl bg-slate-800 hover:bg-rose-600/30 hover:border-rose-500 border border-slate-700 text-slate-200 transition">
+                    B. Books are better than stars.
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUTHOR PUBLISH MODAL -->
+    <div id="authorPublishModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-sm p-5 space-y-3 shadow-2xl">
+            <div class="flex justify-between items-center">
+                <h4 class="font-bold text-sm text-white">Publish eBook (Author Portal)</h4>
+                <button onclick="closeAuthorPublishModal()" class="text-slate-400 text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitAuthorEbook(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">eBook Title</label>
+                    <input type="text" id="authorTitleInput" required placeholder="e.g. The Cosmic Garden" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Author Name</label>
+                    <input type="text" id="authorNameInput" required placeholder="Your Name" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Free Preview Limit</label>
+                    <select class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white">
+                        <option>2 Chapters (Recommended)</option>
+                        <option>3 Chapters</option>
+                        <option>100% Free Access for Kids</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl shadow mt-2">
+                    Publish eBook to Read2Give
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- VOTE & FEEDBACK MODAL -->
+    <div id="feedbackModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-md p-5 space-y-4 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto no-scrollbar">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-base text-white">Prototype Evaluation & Voting</h3>
+                    <p class="text-xs text-slate-400">Comparing Prototype V2 vs Prototype V1</p>
+                </div>
+                <button onclick="closeFeedbackModal()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Voting Preference -->
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-slate-300">Which Prototype design do you prefer overall?</label>
+                <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                    <button onclick="selectVote('V1')" id="voteV1Btn" class="p-3 rounded-xl border border-slate-700 bg-slate-800 hover:border-blue-500 text-center">
+                        Prototype 1 (Light Warm)
+                    </button>
+                    <button onclick="selectVote('V2')" id="voteV2Btn" class="p-3 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 text-center">
+                        Prototype 2 (Glass V2)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Rating Sliders -->
+            <div class="space-y-3 text-xs">
+                <div>
+                    <div class="flex justify-between font-bold mb-1">
+                        <span>UI / Aesthetics Rating</span>
+                        <span id="uiRatingVal" class="text-emerald-400">9 / 10</span>
+                    </div>
+                    <input type="range" min="1" max="10" value="9" oninput="document.getElementById('uiRatingVal').innerText = `${this.value} / 10`" class="w-full accent-emerald-500">
+                </div>
+
+                <div>
+                    <div class="flex justify-between font-bold mb-1">
+                        <span>Clarity & Ease of Use</span>
+                        <span id="clarityRatingVal" class="text-emerald-400">8 / 10</span>
+                    </div>
+                    <input type="range" min="1" max="10" value="8" oninput="document.getElementById('clarityRatingVal').innerText = `${this.value} / 10`" class="w-full accent-emerald-500">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Feedback Comments for Improvement</label>
+                <textarea id="feedbackCommentInput" rows="3" placeholder="What did you like best about Prototype 2?" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white"></textarea>
+            </div>
+
+            <button onclick="submitEvaluation()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black py-3 rounded-xl shadow-lg text-xs">
+                Submit Vote & Feedback
+            </button>
+        </div>
+    </div>
+
+    <!-- HOW TO DEPLOY / GET CODE MODAL -->
+    <div id="deployGuideModal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-card bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-lg p-6 space-y-4 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto no-scrollbar">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-rocket text-indigo-400 text-lg"></i>
+                    <h3 class="font-bold text-base text-white">How to Deploy & Use This Code</h3>
+                </div>
+                <button onclick="closeDeployGuide()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-4 text-xs leading-relaxed text-slate-300">
+                <div class="p-3 bg-blue-950/40 border border-blue-500/30 rounded-2xl">
+                    <p class="font-bold text-blue-300 mb-1">Option 1: Free Hosting on GitHub Pages (Recommended)</p>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-300">
+                        <li>Create a free repository named <code class="bg-slate-800 px-1.5 py-0.5 rounded text-amber-300">read2give-prototype</code> on GitHub.</li>
+                        <li>Save this file as <code class="bg-slate-800 px-1.5 py-0.5 rounded text-amber-300">index.html</code> and upload it.</li>
+                        <li>Go to <strong>Settings -> Pages</strong> and enable GitHub Pages.</li>
+                        <li>Your live web prototype link is ready to share for user testing!</li>
+                    </ol>
+                </div>
+
+                <div class="p-3 bg-slate-800 border border-slate-700 rounded-2xl">
+                    <p class="font-bold text-emerald-400 mb-1">Option 2: Deploy on Netlify or Vercel</p>
+                    <p>Simply drag and drop the folder containing <code class="text-amber-300">index.html</code> into <a href="https://app.netlify.com/drop" target="_blank" class="text-blue-400 underline">Netlify Drop</a> to get an instant live website URL.</p>
+                </div>
+
+                <div class="p-3 bg-slate-800 border border-slate-700 rounded-2xl">
+                    <p class="font-bold text-amber-400 mb-1">Option 3: Run Locally on Computer</p>
+                    <p>Save the code as <code class="text-amber-300">index.html</code> on your desktop, and double click to open directly in Chrome, Safari, or Edge!</p>
+                </div>
+            </div>
+
+            <button onclick="closeDeployGuide()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-xs">
+                Got it, let's test the prototype!
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT STATE & LOGIC -->
+    <script>
+        const v2State = {
+            points: 180,
+            persona: 'student', // 'student', 'adult', 'author'
+            screen: 'splash',
+            isMobileFrame: true,
+            selectedVote: 'V2',
+            readerChapter: 2,
+            isPlayingAudio: false
+        };
+
+        // Navigation Controller
+        function navTo(screenId) {
+            v2State.screen = screenId;
+            const screens = ['splash', 'home', 'reader', 'earn', 'donate', 'impact', 'profile'];
+            
+            screens.forEach(s => {
+                const el = document.getElementById(`s-${s}`);
+                if (el) el.classList.add('hidden');
+            });
+
+            const active = document.getElementById(`s-${screenId}`);
+            if (active) active.classList.remove('hidden');
+
+            const nav = document.getElementById('appBottomNav');
+            if (screenId === 'splash') {
+                nav.classList.add('hidden');
+            } else {
+                nav.classList.remove('hidden');
+            }
+
+            // Highlight active nav item
+            screens.forEach(s => {
+                const btn = document.getElementById(`n-${s}`);
+                if (btn) {
+                    if (s === screenId) {
+                        btn.className = "flex flex-col items-center gap-0.5 text-emerald-400 font-bold transition";
+                    } else {
+                        btn.className = "flex flex-col items-center gap-0.5 text-slate-400 hover:text-white transition";
+                    }
+                }
+            });
+
+            syncPointsDisplay();
+        }
+
+        // Persona Controller
+        function setPersona(p) {
+            v2State.persona = p;
+
+            ['student', 'adult', 'author'].forEach(role => {
+                const b = document.getElementById(`pBtn-${role}`);
+                if (role === p) {
+                    b.className = "px-2.5 py-1 rounded-lg font-bold transition text-emerald-400 bg-emerald-500/20 border border-emerald-500/40";
+                } else {
+                    b.className = "px-2.5 py-1 rounded-lg font-bold transition text-slate-400 hover:text-white";
+                }
+            });
+
+            const splashLabel = document.getElementById('splashPersonaLabel');
+            const authorBox = document.getElementById('authorHomeBox');
+            const adultPaywall = document.getElementById('adultReaderPaywall');
+            const profileRoleBadge = document.getElementById('profileRoleBadge');
+
+            if (p === 'student') {
+                splashLabel.innerText = "🎓 Student Mode Active";
+                profileRoleBadge.innerText = "🎓 Student Reader Account";
+                authorBox.classList.add('hidden');
+                adultPaywall.classList.add('hidden');
+            } else if (p === 'adult') {
+                splashLabel.innerText = "👤 Adult Supporter Mode";
+                profileRoleBadge.innerText = "👤 Adult Supporter Account";
+                authorBox.classList.add('hidden');
+                if (v2State.readerChapter >= 2) adultPaywall.classList.remove('hidden');
+            } else if (p === 'author') {
+                splashLabel.innerText = "✍️ Author & Publisher Mode";
+                profileRoleBadge.innerText = "✍️ Verified Author & Publisher";
+                authorBox.classList.remove('hidden');
+                adultPaywall.classList.add('hidden');
+            }
+        }
+
+        // Frame Mode Toggle
+        function toggleFrameMode() {
+            const frame = document.getElementById('appFrame');
+            const btn = document.getElementById('frameToggleBtn');
+            if (v2State.isMobileFrame) {
+                frame.classList.remove('phone-frame');
+                frame.classList.add('desktop-frame');
+                btn.innerHTML = `<i class="fa-solid fa-desktop"></i>`;
+                v2State.isMobileFrame = false;
+            } else {
+                frame.classList.remove('desktop-frame');
+                frame.classList.add('phone-frame');
+                btn.innerHTML = `<i class="fa-solid fa-mobile-screen"></i>`;
+                v2State.isMobileFrame = true;
+            }
+        }
+
+        // Points Synchronization
+        function addV2Points(amount, label) {
+            v2State.points += amount;
+            syncPointsDisplay();
+            confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } });
+        }
+
+        function syncPointsDisplay() {
+            document.getElementById('ptsHome').innerText = v2State.points;
+            document.getElementById('ptsEarnScreen').innerText = v2State.points;
+            document.getElementById('ptsDonateScreen').innerText = v2State.points;
+            document.getElementById('profilePtsDisplay').innerText = `${v2State.points} pts`;
+        }
+
+        // Reader Controls
+        function launchReader(title) {
+            document.getElementById('readerTitle').innerText = title;
+            navTo('reader');
+        }
+
+        function finishChapterReward() {
+            addV2Points(10, 'Chapter Finished');
+            v2State.readerChapter++;
+            document.getElementById('readerSub').innerText = `Chapter ${v2State.readerChapter} of 18`;
+            document.getElementById('readerProgressText').innerText = `Chapter ${v2State.readerChapter} of 18`;
+            document.getElementById('readerSlider').value = v2State.readerChapter;
+
+            if (v2State.persona === 'adult' && v2State.readerChapter >= 2) {
+                document.getElementById('adultReaderPaywall').classList.remove('hidden');
+            }
+        }
+
+        function updateReaderSlider(val) {
+            v2State.readerChapter = parseInt(val);
+            document.getElementById('readerSub').innerText = `Chapter ${v2State.readerChapter} of 18`;
+            document.getElementById('readerProgressText').innerText = `Chapter ${v2State.readerChapter} of 18`;
+        }
+
+        function prevChapter() {
+            if (v2State.readerChapter > 1) {
+                v2State.readerChapter--;
+                document.getElementById('readerSub').innerText = `Chapter ${v2State.readerChapter} of 18`;
+                document.getElementById('readerProgressText').innerText = `Chapter ${v2State.readerChapter} of 18`;
+                document.getElementById('readerSlider').value = v2State.readerChapter;
+            }
+        }
+
+        function toggleReaderDarkMode() {
+            const body = document.getElementById('readerBodyText');
+            body.classList.toggle('text-slate-300');
+            body.classList.toggle('text-amber-100');
+        }
+
+        function cycleFontSize() {
+            const body = document.getElementById('readerBodyText');
+            body.classList.toggle('text-sm');
+            body.classList.toggle('text-base');
+        }
+
+        function toggleAudioNarrator() {
+            v2State.isPlayingAudio = !v2State.isPlayingAudio;
+            const label = document.getElementById('audioTextLabel');
+            const btn = document.getElementById('audioPlayToggle');
+            if (v2State.isPlayingAudio) {
+                label.innerText = "Playing Chapter Audio...";
+                btn.innerText = "Pause";
+            } else {
+                label.innerText = "AI Audio Narrator";
+                btn.innerText = "Play Audio";
+            }
+        }
+
+        // Earn & Redeem Logic
+        function runQuizModal() { document.getElementById('quizModal').classList.remove('hidden'); }
+        function closeQuizModal() { document.getElementById('quizModal').classList.add('hidden'); }
+        function answerQuiz(isCorrect) {
+            closeQuizModal();
+            if (isCorrect) {
+                addV2Points(15, "Quiz Solved!");
+            }
+        }
+
+        function shareAppLink() { addV2Points(25, "Shared App!"); }
+
+        function redeemImpact(itemName, cost) {
+            if (v2State.points >= cost) {
+                v2State.points -= cost;
+                syncPointsDisplay();
+                confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
+            }
+        }
+
+        function processDirectCashDonation(amt) {
+            addV2Points(amt * 10, "Cash Donation Matching Points!");
+        }
+
+        function unlockAdultBookModal() {
+            processDirectCashDonation(2.99);
+            document.getElementById('adultReaderPaywall').classList.add('hidden');
+        }
+
+        // Modals & Feedback
+        function openAuthorPublishModal() { document.getElementById('authorPublishModal').classList.remove('hidden'); }
+        function closeAuthorPublishModal() { document.getElementById('authorPublishModal').classList.add('hidden'); }
+        function submitAuthorEbook(e) {
+            e.preventDefault();
+            closeAuthorPublishModal();
+            confetti({ particleCount: 50 });
+        }
+
+        function openFeedbackModal() { document.getElementById('feedbackModal').classList.remove('hidden'); }
+        function closeFeedbackModal() { document.getElementById('feedbackModal').classList.add('hidden'); }
+        function selectVote(ver) { v2State.selectedVote = ver; }
+        function submitEvaluation() {
+            closeFeedbackModal();
+            confetti({ particleCount: 80 });
+        }
+
+        function openDeployGuide() { document.getElementById('deployGuideModal').classList.remove('hidden'); }
+        function closeDeployGuide() { document.getElementById('deployGuideModal').classList.add('hidden'); }
+        function downloadTaxReceiptPDF() { confetti({ particleCount: 30 }); }
+    </script>
+</body>
+</html>
